@@ -1,0 +1,65 @@
+from flask import Flask, render_template, request
+from flask_mail import Mail, Message
+
+app = Flask(__name__)
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USERNAME'] = 'mohamed123emad.17@gmail.com'
+app.config['MAIL_PASSWORD'] = '0909718081m'
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+mail = Mail(app)
+
+@app.route('/')
+@app.route('/home')
+def home():
+    return render_template('Home.html')
+
+@app.route('/education')
+def education():
+    return render_template('Education_&_Skills.html')
+
+@app.route('/portfolio')
+def portfolio():
+    return render_template('Portfolio.html')
+
+@app.route('/about')
+def about():
+    return render_template('About.html')
+
+@app.route('/contact', methods=['POST', 'GET'])
+def contact():
+    if request.method == 'POST':  # Check if the form is submitted
+        try:
+            name = request.form['name']  # Get name from form
+            email = request.form['email']  # Get email from form
+            subject = request.form['subject']  # Get subject from form
+            message = request.form['message']  # Get message from form
+        except KeyError as e:
+            return f"Missing field: {str(e)}", 400  # Return an error if a field is missing
+        
+        # Create a new message using Flask-Mail
+        msg = Message(subject, sender='mohamed123emad.17@gmail.com', recipients=['mohamed123emad.17@gmail.com'])  # Set recipients
+        msg.body = f"Name: {name}\nEmail: {email}\n\nMessage:\n{message}"  # Set message body
+        mail.send(msg)
+
+        return "Thanks for your message. I'll get back to you soon!"
+    return render_template('Contact.html')
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+
+
+def send_email_via_gmail(credentials, msg):
+    import base64
+    from googleapiclient.discovery import build
+
+    service = build('gmail', 'v1', credentials=credentials)
+    raw_message = base64.urlsafe_b64encode(msg.as_bytes()).decode()
+    message = {
+        'raw': raw_message
+    }
+    service.users().messages().send(userId='me', body=message).execute()
